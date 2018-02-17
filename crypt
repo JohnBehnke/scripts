@@ -1,26 +1,86 @@
 #!/usr/bin/env bash
 
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 mode=
-password=
-target=
+infile=
+outfile=
+
+
+
+usage(){
+	echo "usage: crypt [-ed] [-p password] [-i infile] [-o outfile]"
+	echo "	-e, --encrypt: encrypt the target file"
+	echo "	-d, --decrypt: decrypt the target file"
+	echo "	-i, --infile: name of the file to encrypt"
+	echo "	-o, --outfile:file name of the encrypted file. If not supplied, the output file will be <infile>.enc on encrypt and <infile>.dec on decrypt"
+}
+
+encrypt(){
+	if [[ !$outfile ]]; then
+		outfile=$(echo $infile | cut -f 1 -d '.').enc
+	fi
+	openssl enc -aes-256-cbc  -salt -in $infile -out $outfile
+}
+
+decrypt(){
+	if [[ !$outfile ]]; then
+		outfile=$(echo $infile | cut -f 1 -d '.').dec
+	fi
+	openssl enc -d -aes-256-cbc -in $infile -out $outfile
+	exit
+}
+
 
 while [[ "$1" != "" ]]; do
 	case $1 in
 		-e | --encrypt )
+			if [[ ! -z "$mode" ]]; then
+				echo -e "${RED}error${NC}: can't encrypt and decrypt a file at the same time!"
+				exit -1
+			fi
 			mode=0 
 			;;
 		-d | --decrypt )
+			if [[ ! -z "$mode" ]]; then
+				echo -e "${RED}error${NC}: can't encrypt and decrypt a file at the same time!"
+				exit -1
+			fi
 			mode=1
 			;;
-		-f | --file )
+		-i | --infile )
 			shift
-			target=$1
+			infile=$1	
 			;;
-		-p | --password )
+		-o | --outfile )
 			shift
-			password=$1
+			outfile=$1
+			;;
+		-h | --help  )
+			usage
+			exit
+			;;
+		* )
+			usage
+			exit 1
+			;;	
 	esac
 	shift
 done
 
-echo "$mode $password $target"
+if [[ -z "$mode" || -z "$infile" ]]; then
+	echo -e "${RED}error${NC}: missing argument(s)"
+	usage
+	exit 1
+fi
+
+if [[ $mode -eq 0 ]]; then
+	encrypt
+else
+	decrypt
+fi
+
+
+
+
