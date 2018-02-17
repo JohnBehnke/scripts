@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+mode=
+password=
+target=
+
+while [[ "$1" != "" ]]; do
+	case $1 in
+		-e | --encrypt )
+			mode=0 
+			;;
+		-d | --decrypt )
+			mode=1
+			;;
+		-f | --file )
+			shift
+			target=$1
+			;;
+		-p | --password )
+			shift
+			password=$1
+	esac
+	shift
+done
+
+echo "$mode $password $target"
