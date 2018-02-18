@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+mode=
+infile=
+outfile=
+password=
+rename=0
+
+
+usage(){
+	echo "usage: crypt [-ed] [-i infile] [-o outfile]"
+	echo "	-e, --encrypt: encrypt the target file"
+	echo "	-d, --decrypt: decrypt the target file"
+	echo "	-i, --infile:  name of the file to encrypt"
+	echo "	-o, --outfile: file name of the encrypted file. If not supplied, name of the outfile will be the encrypted name of the input string"
+}
+
+encrypt(){
+	if [[ -z $outfile ]]; then
+
+		outfile=`echo $infile  | openssl enc -aes-256-cbc -e -k $password -base64 -nosalt`
+
+	fi
+
+	openssl enc -aes-256-cbc  -salt -k $password -in $infile -out $outfile
+}
+
+decrypt(){
+	if [[ -z $outfile ]]; then
+
+		outfile=`echo $infile  | openssl enc -d -aes-256-cbc -k $password -base64 -nosalt`
+	fi
+
+	openssl enc -d -aes-256-cbc -salt -k $password -in $infile -out $outfile
+	
+}
+
+
+while [[ "$1" != "" ]]; do
+	case $1 in
+		-e | --encrypt )
+			if [[ ! -z "$mode" ]]; then
+				echo -e "${RED}error${NC}: can't encrypt and decrypt a file at the same time!"
+				exit -1
+			fi
+			mode=0 
+			;;
+		-d | --decrypt )
+			if [[ ! -z "$mode" ]]; then
+				echo -e "${RED}error${NC}: can't encrypt and decrypt a file at the same time!"
+				exit -1
+			fi
+			mode=1
+			;;
+		-i | --infile )
+			shift
+			infile=$1	
+			;;
+		-o | --outfile )
+			shift
+			outfile=$1
+			;;
+		-h | --help  )
+			usage
+			exit
+			;;
+		* )
+			usage
+			exit 1
+			;;	
+	esac
+	shift
+done
+
+
+if [[ -z "$mode" && -z "$infile" ]]; then
+	echo -e "${RED}error${NC}: missing argument(s)"
+	usage
+	exit 1
+fi
+
+if [[ $mode -eq 0 ]]; then
+	read -s -p "Enter password for encryption: " password_1
+	echo
+	read -s -p "Verify password for encryption: " password_2
+	echo
+	if [[ ! $password_1 -eq $password_2 ]]; then
+		echo -e "${RED}error${NC}: inputted passwords do not match!"
+		exit 1
+	fi
+	password=$password_1
+	encrypt
+	exit
+else
+	read -s -p "Enter password for decryption: " password
+	echo
+	decrypt
+	exit
+fi
+
+
+
+
