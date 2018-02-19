@@ -10,6 +10,9 @@ password=
 rename=0
 
 
+version(){
+	echo "fcrypt version 1.0.1"
+}
 usage(){
 	echo "usage: crypt [-ed] [-i infile] [-o outfile]"
 	echo "	-e, --encrypt: encrypt the target file"
@@ -65,6 +68,10 @@ while [[ "$1" != "" ]]; do
 			;;
 		-h | --help  )
 			usage
+			exit
+			;;
+		-v | --version )
+			version
 			exit
 			;;
 		* )
