@@ -23,22 +23,16 @@ usage(){
 
 encrypt(){
 	if [[ -z $outfile ]]; then
-
 		outfile=`echo $infile  | openssl enc -aes-256-cbc -e -k $password -base64 -nosalt`
-
 	fi
-
 	openssl enc -aes-256-cbc  -salt -k $password -in $infile -out $outfile
 }
 
 decrypt(){
 	if [[ -z $outfile ]]; then
-
 		outfile=`echo $infile  | openssl enc -d -aes-256-cbc -k $password -base64 -nosalt`
 	fi
-
 	openssl enc -d -aes-256-cbc -salt -k $password -in $infile -out $outfile
-	
 }
 
 
@@ -94,7 +88,7 @@ if [[ $mode -eq 0 ]]; then
 	echo
 	read -s -p "Verify password for encryption: " password_2
 	echo
-	if [[ ! $password_1 -eq $password_2 ]]; then
+	if [[  $password_1 != $password_2 ]]; then
 		echo -e "${RED}error${NC}: inputted passwords do not match!"
 		exit 1
 	fi
