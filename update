@@ -50,9 +50,34 @@ else
     echo -e "${RED}No new cask updates available.${NC}"
 fi
 
+#Need to verify this part works....
 echo -e "${BLUE}Checking for Mac App Store App updates...${NC}"
+outdated_mas_apps=$(mas outdated)
+num_outdated_mas_app=$(echo $outdated_mas_apps | wc -w | awk '{print $1}')
+if [ $num_outdated_mas_app -gt 0 ]; then
+    echo -e "${CYAN}MAS updates for...${NC}"
+    for app in $num_outdated_mas_app; do
+	echo -e "   ${LIGHT_GREEN}->${NC} ${YELLOW}$app${NC}"
+    done
+    echo -e -n "Update ${RED}$num_outdated_casks${NC} MAS app(s)? ${BLUE}[yN]${NC} ";read -p "" confirmation
+    if [[ $confirmation == "y" ]]; then
+		mas upgrade
+	fi
+else
+    echo -e "${RED}No new MAS App updates available.${NC}"
+fi
 
 
-mas upgrade
+#Need to verify this part works....
+echo -e "${BLUE}Checking for macOS updates...${NC}"
+macOSUpdates=$(softwareupdate -l | tail +5)
 
-# sudo softwareupdate -ia
+if [[ $macOSUpdates != "" ]]; then
+	#statements
+	echo $macOSUpdates
+	echo -e -n "Update macOS? ${BLUE}[yN]${NC} ";read -p "" confirmation
+		if [[ $confirmation == "y" ]]; then
+		sudo softwareupdate -i -a && echo "macOS updates done! You may need to reboot..."
+fi
+
+fi
