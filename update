@@ -41,7 +41,8 @@ if [ $num_outdated_casks -gt 0 ]; then
     for cask in $outdated_casks; do
 	echo -e "   ${LIGHT_GREEN}->${NC} ${YELLOW}$cask${NC}"
     done
-    echo -e -n "Update ${RED}$num_outdated_casks${NC} cask(s)? ${BLUE}[yN]${NC} ";read -p "" confirmation
+    echo -e -n "Update ${RED}$num_outdated_casks${NC} cask(s)? ${BLUE}[yN]${NC} "
+    read -p "" confirmation
     if [[ $confirmation == "y" ]]; then
 		brew cask upgrade
 		brew cask cleanup > /dev/null;
@@ -53,13 +54,16 @@ fi
 #Need to verify this part works....
 echo -e "${BLUE}Checking for Mac App Store App updates...${NC}"
 outdated_mas_apps=$(mas outdated)
-num_outdated_mas_app=$(echo $outdated_mas_apps | wc -w | awk '{print $1}')
+num_outdated_mas_app=$(echo -e $outdated_mas_apps | wc -l | awk '{print $1}')
 if [ $num_outdated_mas_app -gt 0 ]; then
     echo -e "${CYAN}MAS updates for...${NC}"
-    for app in $num_outdated_mas_app; do
-	echo -e "   ${LIGHT_GREEN}->${NC} ${YELLOW}$app${NC}"
-    done
-    echo -e -n "Update ${RED}$num_outdated_casks${NC} MAS app(s)? ${BLUE}[yN]${NC} ";read -p "" confirmation
+    num_outdated_mas_app=0
+    while read -r line; do
+    	num_outdated_mas_app=$(($num_outdated_mas_app + 1))     
+		echo -e "   ${LIGHT_GREEN}->${NC} ${YELLOW}`echo $line | awk '{print $2}'`${NC}"
+	done <<< "$outdated_mas_apps"
+    echo -e -n "Update ${RED}$num_outdated_mas_app${NC} MAS app(s)? ${BLUE}[yN]${NC} "
+    read -p "" confirmation
     if [[ $confirmation == "y" ]]; then
 		mas upgrade
 	fi
@@ -74,8 +78,9 @@ macOSUpdates=$(softwareupdate -l | tail +5)
 
 if [[ $macOSUpdates != "" ]]; then
 	#statements
-	echo $macOSUpdates
-	echo -e -n "Update macOS? ${BLUE}[yN]${NC} ";read -p "" confirmation
+	echo -e "$macOSUpdates"
+	echo -e -n "Update macOS? ${BLUE}[yN]${NC} "
+	read -p "" confirmation
 		if [[ $confirmation == "y" ]]; then
 		sudo softwareupdate -i -a && echo "macOS updates done! You may need to reboot..."
 fi
