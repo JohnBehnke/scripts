@@ -9,7 +9,9 @@ outfile=
 password=
 rename=0
 
-
+version(){
+	echo "fcrypt version 1.0.2"
+}
 usage(){
 	echo "usage: crypt [-ed] [-i infile] [-o outfile]"
 	echo "	-e, --encrypt: encrypt the target file"
@@ -20,22 +22,22 @@ usage(){
 
 encrypt(){
 	if [[ -z $outfile ]]; then
-
-		outfile=`echo $infile  | openssl enc -aes-256-cbc -e -k $password -base64 -nosalt`
-
+		outfile=`echo $infile | openssl enc -aes-256-cbc -e -k $password  -base64 -nosalt`
+		invalid_char="/"
+		valid_char="-"
+		outfile=${outfile//$invalid_char/$valid_char}
 	fi
-
 	openssl enc -aes-256-cbc  -salt -k $password -in $infile -out $outfile
 }
 
 decrypt(){
 	if [[ -z $outfile ]]; then
-
-		outfile=`echo $infile  | openssl enc -d -aes-256-cbc -k $password -base64 -nosalt`
+		valid_char="-"
+		invalid_char="/"
+		infile_corrected=${infile//$valid_char/$invalid_char}
+		outfile=`echo $infile_corrected | base64 --decode | openssl enc -d -aes-256-cbc -k $password  -nosalt`
 	fi
-
 	openssl enc -d -aes-256-cbc -salt -k $password -in $infile -out $outfile
-	
 }
 
 
@@ -67,6 +69,10 @@ while [[ "$1" != "" ]]; do
 			usage
 			exit
 			;;
+		-v | --version )
+			version
+			exit
+			;;
 		* )
 			usage
 			exit 1
@@ -87,7 +93,7 @@ if [[ $mode -eq 0 ]]; then
 	echo
 	read -s -p "Verify password for encryption: " password_2
 	echo
-	if [[ ! $password_1 -eq $password_2 ]]; then
+	if [[  $password_1 != $password_2 ]]; then
 		echo -e "${RED}error${NC}: inputted passwords do not match!"
 		exit 1
 	fi
@@ -100,7 +106,3 @@ else
 	decrypt
 	exit
 fi
-
-
-
-
